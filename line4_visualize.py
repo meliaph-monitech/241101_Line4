@@ -14,6 +14,9 @@ import os
 import plotly.graph_objects as go
 from io import BytesIO
 
+# Set page layout to wide
+st.set_page_config(layout="wide")
+
 # Function to extract zip file
 def extract_zip(uploaded_file):
     with zipfile.ZipFile(uploaded_file, 'r') as z:
