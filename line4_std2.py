@@ -76,8 +76,13 @@ def plot_data(data_dict):
             title=f'{identifier} Bead Data',
             xaxis_title='Date',
             yaxis_title='Value',
-            legend_title='Legend'
+            legend_title='Legend',
+            height=800  # Set the height of the entire figure
         )
+        
+        # Adjust each subplot's height
+        fig.update_yaxes(title_text='Mean Value', row=1, col=1)
+        fig.update_yaxes(title_text='Standard Deviation', row=2, col=1)
         
         st.plotly_chart(fig)
 
