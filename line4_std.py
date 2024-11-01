@@ -6,6 +6,7 @@ import pandas as pd
 import zipfile
 import os
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 # Set page layout to wide (must be the first command)
 st.set_page_config(layout="wide")
@@ -43,7 +44,8 @@ def load_and_aggregate_data(path):
 # Function to plot data with average and standard deviation by date for multiple folders
 def plot_data(data_dict):
     for identifier in ['Ch01', 'Ch02', 'Ch03']:
-        fig = go.Figure()
+        # Create a figure with secondary y-axis
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
 
         # Get unique dates across all folders for the current identifier
         all_dates = sorted(set(date for folder_data in data_dict.values() for date in folder_data[identifier].keys()))
@@ -52,29 +54,32 @@ def plot_data(data_dict):
             y_mean = [folder_data[identifier].get(date, (None, None))[0] for date in all_dates]  # Mean values
             y_std = [folder_data[identifier].get(date, (None, None))[1] for date in all_dates]  # Std deviation values
 
-            # Plot mean values
+            # Plot mean values on primary y-axis
             fig.add_trace(go.Scatter(
                 x=all_dates,
                 y=y_mean,
                 mode='lines+markers',
                 name=f'{identifier} Mean - {folder_name}'
-            ))
+            ), secondary_y=False)
 
-            # Plot standard deviation values
+            # Plot standard deviation values on secondary y-axis
             fig.add_trace(go.Scatter(
                 x=all_dates,
                 y=y_std,
                 mode='lines+markers',
                 name=f'{identifier} Std Dev - {folder_name}',
                 line=dict(dash='dash')  # Dashed line for standard deviation
-            ))
+            ), secondary_y=True)
 
+        # Update layout for the figure
         fig.update_layout(
             title=f'{identifier} Bead Data (Averaged by Date)',
             xaxis_title='Date',
-            yaxis_title='Value',
+            yaxis_title='Mean Value',
+            yaxis2_title='Standard Deviation',
             legend_title='Legend'
         )
+        
         st.plotly_chart(fig)
 
 # Streamlit UI
