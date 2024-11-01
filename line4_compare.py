@@ -55,12 +55,23 @@ def plot_data(data_dict):
                 name=f'{identifier} - {folder_name}'
             ))
 
+        # Change the title based on the identifier
+        if identifier == 'Ch01':
+            title = 'NIR Bead Data (Averaged by Date)'
+        elif identifier == 'Ch02':
+            title = 'VIS Bead Data (Averaged by Date)'
+        elif identifier == 'Ch03':
+            title = 'LO Bead Data (Averaged by Date)'
+        else:
+            title = f'{identifier} Bead Data (Averaged by Date)'  # Fallback for unexpected identifiers
+
         fig.update_layout(
-            title=f'{identifier} Bead Data (Averaged by Date)',
+            title=title,
             xaxis_title='Date',
             yaxis_title='Average Value'
         )
         st.plotly_chart(fig)
+
 
 # Streamlit UI
 st.title('Bead Data Visualization (Averaged by Date)')
