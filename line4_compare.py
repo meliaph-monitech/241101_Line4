@@ -32,21 +32,26 @@ def load_and_aggregate_data(path):
             for identifier in ['Ch01', 'Ch02', 'Ch03']:
                 subset = df[df[0] == identifier]
                 if identifier not in date_data:
-                    date_data[identifier] = []
-                date_data[identifier].append(subset.iloc[:, 1:].mean(axis=0))  # Aggregate means by bead number
+                    date_data[identifier] = {}
+                # Store mean values for each date
+                date_data[identifier][date_folder] = subset.iloc[:, 1:].mean(axis=0).mean()
 
-    # Convert lists of means to averages by date
-    for identifier in date_data:
-        date_data[identifier] = pd.DataFrame(date_data[identifier]).mean(axis=0)  # Average across all date-specific means
     return date_data, date_folders
 
 # Function to plot data with average by date for multiple folders
 def plot_data(data_dict, date_folders):
     for identifier in ['Ch01', 'Ch02', 'Ch03']:
         fig = go.Figure()
+        # Only get available dates for this identifier
+        available_dates = list(data_dict[identifier].keys())
 
-        for folder_name, averages in data_dict.items():
-            fig.add_trace(go.Scatter(x=date_folders, y=averages[identifier], mode='lines+markers', name=f'{identifier} - {folder_name}'))
+        for folder_name in data_dict[identifier]:
+            fig.add_trace(go.Scatter(
+                x=available_dates,
+                y=[data_dict[identifier][date] for date in available_dates],
+                mode='lines+markers',
+                name=f'{identifier} - {folder_name}'
+            ))
 
         fig.update_layout(
             title=f'{identifier} Bead Data (Averaged by Date)',
@@ -78,5 +83,21 @@ if uploaded_file is not None:
             data, date_folders = load_and_aggregate_data(os.path.join(data_dir, base_folder))
             aggregated_data[base_folder] = data
         
+        # Prepare data for plotting
+        data_for_plotting = {identifier: {} for identifier in ['Ch01', 'Ch02', 'Ch03']}
+        
+        # Combine data for plotting
+        for folder_name, data in aggregated_data.items():
+            for identifier in data:
+                for date in data[identifier]:
+                    if date not in data_for_plotting[identifier]:
+                        data_for_plotting[identifier][date] = []
+                    data_for_plotting[identifier][date].append(data[identifier][date])
+
+        # Calculate averages across dates
+        for identifier in data_for_plotting:
+            for date in data_for_plotting[identifier]:
+                data_for_plotting[identifier][date] = sum(data_for_plotting[identifier][date]) / len(data_for_plotting[identifier][date])
+
         # Plot the aggregated data for each identifier
-        plot_data(aggregated_data, date_folders)
+        plot_data(data_for_plotting, date_folders)
