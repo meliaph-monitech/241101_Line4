@@ -11,7 +11,7 @@ import streamlit as st
 import pandas as pd
 import zipfile
 import os
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 from io import BytesIO
 
 # Function to extract zip file
@@ -35,16 +35,18 @@ def load_csv_files(path):
 
 # Function to plot data
 def plot_data(data, identifier):
-    plt.figure(figsize=(10, 6))
+    fig = go.Figure()
     for df in data:
         subset = df[df[0] == identifier]
         values = subset.iloc[:, 1:].values.flatten()
-        plt.plot(values, label=f'{identifier}')
-    plt.title(f'{identifier} Bead Data')
-    plt.xlabel('Measurement')
-    plt.ylabel('Value')
-    plt.legend()
-    st.pyplot(plt)
+        fig.add_trace(go.Scatter(y=values, mode='lines', name=identifier))
+
+    fig.update_layout(
+        title=f'{identifier} Bead Data',
+        xaxis_title='Measurement',
+        yaxis_title='Value'
+    )
+    st.plotly_chart(fig)
 
 # Streamlit UI
 st.title('Bead Data Visualization')
@@ -55,14 +57,14 @@ uploaded_file = st.file_uploader("Upload a ZIP file", type="zip")
 if uploaded_file is not None:
     # Extract ZIP file
     data_dir = extract_zip(uploaded_file)
-
+    
     # List base folders
     base_folder = st.selectbox('Select Folder', list_folders(data_dir))
-
+    
     if base_folder:
         # List date folders
         date_folder = st.selectbox('Select Date', list_folders(os.path.join(data_dir, base_folder)))
-
+        
         if date_folder:
             # Load and plot data
             data = load_csv_files(os.path.join(data_dir, base_folder, date_folder))
