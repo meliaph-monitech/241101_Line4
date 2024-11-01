@@ -22,7 +22,7 @@ def extract_zip(uploaded_file):
 
 # Function to list folders
 def list_folders(path):
-    return [f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))]
+    return sorted([f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))])
 
 # Function to load CSV files
 def load_csv_files(path):
@@ -58,11 +58,11 @@ if uploaded_file is not None:
     # Extract ZIP file
     data_dir = extract_zip(uploaded_file)
     
-    # List base folders
+    # List and sort base folders
     base_folder = st.selectbox('Select Folder', list_folders(data_dir))
     
     if base_folder:
-        # List date folders
+        # List and sort date folders
         date_folder = st.selectbox('Select Date', list_folders(os.path.join(data_dir, base_folder)))
         
         if date_folder:
