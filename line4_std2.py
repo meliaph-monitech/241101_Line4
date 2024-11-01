@@ -7,6 +7,7 @@ import zipfile
 import os
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import plotly.express as px  # Import Plotly Express for color scales
 
 # Set page layout to wide (must be the first command)
 st.set_page_config(layout="wide")
@@ -43,6 +44,14 @@ def load_and_aggregate_data(path):
 
 # Function to plot mean and standard deviation in separate subplots for each channel
 def plot_data(data_dict):
+    # Get a color scale
+    color_scale = px.colors.qualitative.Plotly  # Use Plotly's qualitative color scale
+    folder_names = list(data_dict.keys())
+    num_folders = len(folder_names)
+
+    # Create a color mapping based on the number of folders
+    color_mapping = {folder_names[i]: color_scale[i % len(color_scale)] for i in range(num_folders)}
+
     for identifier in ['Ch01', 'Ch02', 'Ch03']:
         # Create a figure with two subplots
         fig = make_subplots(rows=2, cols=1, subplot_titles=(f'{identifier} Mean', f'{identifier} Standard Deviation'))
@@ -51,6 +60,8 @@ def plot_data(data_dict):
         all_dates = sorted(set(date for folder_data in data_dict.values() for date in folder_data[identifier].keys()))
 
         for folder_name, folder_data in data_dict.items():
+            # Use color from the color mapping
+            color = color_mapping[folder_name]
             y_mean = [folder_data[identifier].get(date, (None, None))[0] for date in all_dates]  # Mean values
             y_std = [folder_data[identifier].get(date, (None, None))[1] for date in all_dates]  # Std deviation values
 
@@ -59,7 +70,8 @@ def plot_data(data_dict):
                 x=all_dates,
                 y=y_mean,
                 mode='lines+markers',
-                name=f'Mean - {folder_name}'
+                name=f'Mean - {folder_name}',
+                line=dict(color=color)
             ), row=1, col=1)
 
             # Plot standard deviation values on the second subplot
@@ -68,7 +80,7 @@ def plot_data(data_dict):
                 y=y_std,
                 mode='lines+markers',
                 name=f'Std Dev - {folder_name}',
-                # line=dict(dash='dash')  # Dashed line for standard deviation
+                line=dict(color=color, dash='dash')  # Dashed line for standard deviation
             ), row=2, col=1)
 
         # Update layout for the figure
