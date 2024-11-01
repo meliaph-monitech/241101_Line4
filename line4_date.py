@@ -3,6 +3,7 @@ import os
 import pandas as pd
 import zipfile
 import plotly.express as px
+import tempfile
 
 # Define directories for each category
 directories = {
@@ -14,8 +15,11 @@ directories = {
 
 # Function to extract ZIP files
 def extract_zip(uploaded_zip):
-    with zipfile.ZipFile(uploaded_zip, 'r') as zip_ref:
-        zip_ref.extractall('/content/temp_data')  # Specify a temporary extraction path
+    # Create a temporary directory
+    with tempfile.TemporaryDirectory() as temp_dir:
+        with zipfile.ZipFile(uploaded_zip, 'r') as zip_ref:
+            zip_ref.extractall(temp_dir)  # Extract to temporary directory
+        return temp_dir  # Return the temporary directory path
 
 # Function to plot aggregated data from selected category folder, separated by channels
 def plot_aggregated_data(folder_path):
@@ -64,7 +68,7 @@ uploaded_zip = st.file_uploader("Upload a ZIP file containing the data", type=["
 
 if uploaded_zip:
     # Extract ZIP file
-    extract_zip(uploaded_zip)
+    temp_dir = extract_zip(uploaded_zip)
     st.success("ZIP file extracted successfully!")
 
     # Select category folder
