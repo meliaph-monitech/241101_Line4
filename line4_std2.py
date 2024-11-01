@@ -52,6 +52,24 @@ def plot_data(data_dict):
     # Create a color mapping based on the number of folders
     color_mapping = {folder_names[i]: color_scale[i % len(color_scale)] for i in range(num_folders)}
 
+    global_mean_range = []
+    global_std_range = []
+
+    # Calculate global min and max for mean and std deviation
+    for identifier in ['Ch01', 'Ch02', 'Ch03']:
+        for folder_name, folder_data in data_dict.items():
+            for date in folder_data[identifier].keys():
+                mean_value, std_value = folder_data[identifier][date]
+                if mean_value is not None:
+                    global_mean_range.append(mean_value)
+                if std_value is not None:
+                    global_std_range.append(std_value)
+
+    y_mean_min = min(global_mean_range) if global_mean_range else 0
+    y_mean_max = max(global_mean_range) if global_mean_range else 1
+    y_std_min = min(global_std_range) if global_std_range else 0
+    y_std_max = max(global_std_range) if global_std_range else 1
+
     for identifier in ['Ch01', 'Ch02', 'Ch03']:
         # Create a figure with two subplots
         fig = make_subplots(rows=2, cols=1, subplot_titles=(f'{identifier} Mean', f'{identifier} Standard Deviation'))
@@ -87,14 +105,13 @@ def plot_data(data_dict):
         fig.update_layout(
             title=f'{identifier} Bead Data',
             xaxis_title='Date',
-            yaxis_title='Value',
             legend_title='Legend',
             height=800  # Set the height of the entire figure
         )
         
-        # Adjust each subplot's height
-        fig.update_yaxes(title_text='Mean Value', row=1, col=1)
-        fig.update_yaxes(title_text='Standard Deviation', row=2, col=1)
+        # Adjust each subplot's height and y-axis range
+        fig.update_yaxes(title_text='Mean Value', row=1, col=1, range=[y_mean_min, y_mean_max])
+        fig.update_yaxes(title_text='Standard Deviation', row=2, col=1, range=[y_std_min, y_std_max])
         
         st.plotly_chart(fig)
 
