@@ -2,7 +2,15 @@ import streamlit as st
 import os
 import pandas as pd
 import zipfile
-import matplotlib.pyplot as plt
+import plotly.express as px
+
+# Define directories for each category
+directories = {
+    "OK": "/content/drive/MyDrive/Colab Notebooks/NVH_Categorization_Trial/OK",
+    "Weak Weld": "/content/drive/MyDrive/Colab Notebooks/NVH_Categorization_Trial/WeakWeld",
+    "Poor Appearance": "/content/drive/MyDrive/Colab Notebooks/NVH_Categorization_Trial/PoorAppearance",
+    "Hot Melt": "/content/drive/MyDrive/Colab Notebooks/NVH_Categorization_Trial/HotMelt"
+}
 
 # Function to extract ZIP files
 def extract_zip(uploaded_zip):
@@ -38,20 +46,15 @@ def plot_aggregated_data(folder_path):
                             channel_data = df[[df.columns[0], channel]].rename(columns={df.columns[0]: 'Date'})
                             aggregated_data[channel] = pd.concat([aggregated_data[channel], channel_data], ignore_index=True)
 
-    # Plotting the aggregated data for each channel
-    plt.figure(figsize=(12, 6))
-    for channel, data in aggregated_data.items():
-        # Sort data by date
-        data = data.sort_values(by='Date')
-        plt.plot(data['Date'], data[channel], label=channel)
+    # Combine the aggregated data for Plotly visualization
+    combined_data = pd.concat(aggregated_data.values(), keys=aggregated_data.keys()).reset_index(level=0)
+    combined_data.columns = ['Channel', 'Date', 'Value']
 
-    plt.title('Aggregated Signal Data Over Time by Channel')
-    plt.xlabel('Date')
-    plt.ylabel('Signal Values')
-    plt.legend(title='Channels')
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.show()
+    # Plotting the aggregated data using Plotly
+    fig = px.line(combined_data, x='Date', y='Value', color='Channel', 
+                  title='Aggregated Signal Data Over Time by Channel')
+    fig.update_layout(xaxis_title='Date', yaxis_title='Signal Values')
+    st.plotly_chart(fig)
 
 # Streamlit app setup
 st.title('Signal Data Visualization from NIR and VIS Signals')
