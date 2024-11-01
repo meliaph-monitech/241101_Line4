@@ -40,13 +40,28 @@ def load_and_aggregate_data(path):
         date_data[identifier] = pd.DataFrame(date_data[identifier]).mean(axis=0)  # Average across all date-specific means
     return date_data, date_folders
 
+# Function to create standardized date range and align data
+def align_data_to_dates(data_dict):
+    all_dates = [str(i).zfill(2) for i in range(1, 32)]  # Dates from 01 to 31
+    aligned_data = {}
+
+    for folder_name, data in data_dict.items():
+        aligned_data[folder_name] = {}
+        for identifier in ['Ch01', 'Ch02', 'Ch03']:
+            # Create a DataFrame to hold aligned data
+            averages = pd.Series(data[identifier])
+            # Align averages to the date range, filling missing values with NaN
+            aligned_data[folder_name][identifier] = averages.reindex(all_dates, fill_value=None)
+
+    return aligned_data, all_dates
+
 # Function to plot data with average by date for multiple folders
-def plot_data(data_dict, date_folders):
+def plot_data(data_dict, all_dates):
     for identifier in ['Ch01', 'Ch02', 'Ch03']:
         fig = go.Figure()
 
         for folder_name, averages in data_dict.items():
-            fig.add_trace(go.Scatter(x=date_folders, y=averages[identifier], mode='lines+markers', name=f'{identifier} - {folder_name}'))
+            fig.add_trace(go.Scatter(x=all_dates, y=averages[identifier], mode='lines+markers', name=f'{identifier} - {folder_name}'))
 
         fig.update_layout(
             title=f'{identifier} Bead Data (Averaged by Date)',
@@ -78,5 +93,8 @@ if uploaded_file is not None:
             data, date_folders = load_and_aggregate_data(os.path.join(data_dir, base_folder))
             aggregated_data[base_folder] = data
         
+        # Align data to the standardized date range
+        aligned_data, all_dates = align_data_to_dates(aggregated_data)
+        
         # Plot the aggregated data for each identifier
-        plot_data(aggregated_data, date_folders)
+        plot_data(aligned_data, all_dates)
