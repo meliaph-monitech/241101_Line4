@@ -68,7 +68,7 @@ def plot_data(data_dict):
                 y=y_std,
                 mode='lines+markers',
                 name=f'Std Dev - {folder_name}',
-                line=dict(dash='dash')  # Dashed line for standard deviation
+                # line=dict(dash='dash')  # Dashed line for standard deviation
             ), row=2, col=1)
 
         # Update layout for the figure
