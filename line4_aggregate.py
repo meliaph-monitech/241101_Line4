@@ -16,12 +16,14 @@ Original file is located at
     https://colab.research.google.com/drive/1nxLbYE15VCIfpR5z_apPUV0x8_EMEPQN
 """
 
+# -*- coding: utf-8 -*-
+"""Bead Data Visualization in Streamlit"""
+
 import streamlit as st
 import pandas as pd
 import zipfile
 import os
 import plotly.graph_objects as go
-from io import BytesIO
 
 # Set page layout to wide
 st.set_page_config(layout="wide")
@@ -52,14 +54,14 @@ def plot_data(data, identifier):
     for df in data:
         # Filter data for the specified identifier (e.g., Ch01, Ch02, Ch03)
         subset = df[df[0] == identifier]
-
+        
         # Group data by Bead/Segment Number and calculate mean
         means = subset.iloc[:, 1:].mean(axis=0)  # Calculates mean across rows for each bead
         bead_numbers = list(range(1, len(means) + 1))  # Assuming bead numbers are sequential
-
+        
         # Plot data
         fig.add_trace(go.Scatter(x=bead_numbers, y=means, mode='lines+markers', name=f'{identifier} Mean'))
-
+    
     fig.update_layout(
         title=f'{identifier} Bead Data (Averaged)',
         xaxis_title='Bead Number',
@@ -76,14 +78,14 @@ uploaded_file = st.file_uploader("Upload a ZIP file", type="zip")
 if uploaded_file is not None:
     # Extract ZIP file
     data_dir = extract_zip(uploaded_file)
-
+    
     # List and sort base folders
     base_folder = st.selectbox('Select Folder', list_folders(data_dir))
-
+    
     if base_folder:
         # List and sort date folders
         date_folder = st.selectbox('Select Date', list_folders(os.path.join(data_dir, base_folder)))
-
+        
         if date_folder:
             # Load and plot data
             data = load_csv_files(os.path.join(data_dir, base_folder, date_folder))
