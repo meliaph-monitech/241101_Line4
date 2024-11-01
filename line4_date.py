@@ -20,22 +20,39 @@ def extract_zip(uploaded_file):
 def list_folders(path):
     return sorted([f for f in os.listdir(path) if os.path.isdir(os.path.join(path, f))])
 
-# Function to load and aggregate CSV files
+# Function to load and aggregate CSV files from subdirectories
 def load_and_aggregate_csv_files(path):
-    csv_files = [os.path.join(path, f) for f in os.listdir(path) if f.endswith('.csv')]
     data_frames = []
     dates = []
 
-    for csv_file in csv_files:
-        df = pd.read_csv(csv_file, header=None)
-        date_str = os.path.basename(csv_file).split('.')[0]  # Extract date from filename
-        df['Date'] = date_str  # Add a Date column based on the filename
-        data_frames.append(df)
-        dates.append(date_str)
+    # Iterate through each base folder and look for date-specific folders
+    for folder in list_folders(path):
+        date_folder_path = os.path.join(path, folder)
+
+        # Get all CSV files from the date-specific folders
+        csv_files = [os.path.join(date_folder_path, f) for f in os.listdir(date_folder_path) if f.endswith('.csv')]
+        
+        if not csv_files:
+            st.warning(f"No CSV files found in folder: {date_folder_path}")
+            continue
+
+        for csv_file in csv_files:
+            try:
+                df = pd.read_csv(csv_file, header=None)
+                date_str = os.path.basename(date_folder_path)  # Use the name of the date folder as the date
+                df['Date'] = date_str  # Add a Date column based on the folder name
+                data_frames.append(df)
+                dates.append(date_str)
+            except Exception as e:
+                st.error(f"Error reading {csv_file}: {e}")
 
     # Concatenate all data frames
-    full_data = pd.concat(data_frames, ignore_index=True)
-    return full_data, sorted(set(dates))
+    if data_frames:
+        full_data = pd.concat(data_frames, ignore_index=True)
+        return full_data, sorted(set(dates))
+    else:
+        st.warning("No valid data frames to concatenate.")
+        return pd.DataFrame(), []  # Return an empty DataFrame if no valid data frames
 
 # Function to plot data aggregated by date
 def plot_data_aggregated_by_date(full_data):
@@ -77,7 +94,7 @@ if uploaded_file is not None:
     base_folder = st.selectbox('Select Folder', list_folders(data_dir))
     
     if base_folder:
-        # Load and aggregate data from all CSV files in the selected base folder
+        # Load and aggregate data from all CSV files in the selected base folder's subdirectories
         full_data, _ = load_and_aggregate_csv_files(os.path.join(data_dir, base_folder))
         
         # Plot the aggregated data
