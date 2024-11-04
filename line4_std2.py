@@ -52,6 +52,9 @@ def plot_data(data_dict):
     # Create a color mapping based on the number of folders
     color_mapping = {folder_names[i]: color_scale[i % len(color_scale)] for i in range(num_folders)}
 
+    # Mapping of identifiers to their respective titles
+    identifier_titles = {'Ch01': 'NIR', 'Ch02': 'VIS', 'Ch03': 'LO'}
+
     for identifier in ['Ch01', 'Ch02', 'Ch03']:
         # Create a figure with two subplots
         fig = make_subplots(rows=2, cols=1, subplot_titles=(f'{identifier} Mean', f'{identifier} Standard Deviation'))
@@ -85,7 +88,7 @@ def plot_data(data_dict):
 
         # Update layout for the figure
         fig.update_layout(
-            title=f'{identifier} Bead Data',
+            title=f'{identifier_titles.get(identifier, identifier)} Bead Data (Averaged by Date)',
             xaxis_title='Date',
             yaxis_title='Value',
             legend_title='Legend',
@@ -97,6 +100,7 @@ def plot_data(data_dict):
         fig.update_yaxes(title_text='Standard Deviation', row=2, col=1)
         
         st.plotly_chart(fig)
+
 
 # Streamlit UI
 st.title('Bead Data Visualization (Averaged by Date and Standard Deviation)')
