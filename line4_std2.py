@@ -57,7 +57,11 @@ def plot_data(data_dict):
 
     for identifier in ['Ch01', 'Ch02', 'Ch03']:
         # Create a figure with two subplots
-        fig = make_subplots(rows=2, cols=1, subplot_titles=(f'{identifier} Mean', f'{identifier} Standard Deviation'))
+        fig = make_subplots(
+            rows=2, cols=1, 
+            subplot_titles=(f'{identifier_titles.get(identifier, identifier)} Mean', 
+                            f'{identifier_titles.get(identifier, identifier)} Standard Deviation')
+        )
 
         # Get unique dates across all folders for the current identifier
         all_dates = sorted(set(date for folder_data in data_dict.values() for date in folder_data[identifier].keys()))
